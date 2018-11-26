@@ -1,0 +1,90 @@
+version: '2'
+services:
+ auth-db:
+   image: mysql:5.7
+   ports:
+     - "3307:3306"
+   environment:
+     MYSQL_ROOT_PASSWORD: 123
+     MYSQL_USER: arquisoft
+     MYSQL_PASSWORD: 123
+     MYSQL_DATABASE: auth
+     MYSQL_HOST: auth-db
+ auth-ms:
+   image: joahernandezca/2b_authentication
+   command: bash -c "sleep 40 && rm -f tmp/pids/server.pid && bundle exec rails db:migrate && bundle exec rails db:seed && bundle exec rails s -p 4000 -b '0.0.0.0'"
+   ports:
+     - "3000:4000"
+   depends_on:
+     - auth-db
+ boards-db:
+   image: mongo
+   ports:
+   - 3304:27017
+ boards-ms:
+   image: baangaritar/boards-js
+   ports:
+   depends_on:
+   - boards-db
+ lists-db:
+   image: mysql:5.7
+   environment:
+     MYSQL_ROOT_PASSWORD: password
+     MYSQL_DATABASE: lists
+     MYSQL_USER: listsuser
+     MYSQL_PASSWORD: listsuser
+   ports:
+     - 3305:3306
+ lists-ms:
+   image:  dieosiris23/task3
+   depends_on:
+     - lists-db
+ tasks-db:
+   image: mysql:5.7
+   environment:
+     MYSQL_DATABASE: tasks-db
+     MYSQL_PASSWORD: '123'
+     MYSQL_ROOT_PASSWORD: '123'
+     MYSQL_USER: sa
+   ports:
+     - 3306:3306
+ tasks-ms:
+   image: dieosiris23/task_ms
+   depends_on:
+     - tasks-db
+ statistics-ms:
+   image: dieosiris23/statistics-py
+   command: ["gunicorn", "statistics_ms.wsgi:application", "--bind", "0.0.0.0:8000"]
+   environment:
+     - SECRET_KEY=statistics
+     - SQL_ENGINE=django.db.backends.postgresql
+     - SQL_DATABASE=postgres
+     - SQL_USER=postgres
+     - SQL_PASSWORD=postgres
+     - SQL_HOST=statistics-db
+     - SQL_PORT=5432
+   depends_on:
+     - statistics-db
+ statistics-db:
+   image: postgres
+ unado-api:
+   image: dieosiris23/api_get
+   environment:
+     PORT: '5000'
+     SHOW_URLS: 'true'
+     USERS_PORT: '3000'
+     USERS_ENTRY: '/'
+     BOARDS_PORT: '3001'
+     BOARDS_ENTRY: 'boards-ms/resources/boards'
+     LISTS_PORT: '3002'
+     LISTS_ENTRY: 'lists-ms/resources/lists'
+     TASKS_PORT: '3003'
+     TASKS_ENTRY: 'tasks-ms/resources/tasks'
+     STATISTICS_PORT: '3007'
+     STATISTICS_ENTRY: 'statistics-ms/resources/statistics'
+#Proxy inverso Ngnixx
+trello-proxy:
+       container_name: trello-proxy
+       image: dieosiris23/trello-proxy
+       ports:
+         -"80:80"
