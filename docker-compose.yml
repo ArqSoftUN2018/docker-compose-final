@@ -24,24 +24,6 @@ services:
       STATISTICS_URL: 'statistics-ms'
       STATISTICS_PORT: '3007'
       STATISTICS_ENTRY: 'statistics-ms/resources/statistics'
-    #Examples MS
-  examples-db:
-    image: mysql:5.7
-    ports:
-      - "3309:3307"
-    environment:
-      MYSQL_ROOT_PASSWORD: 123
-      MYSQL_USER: arquisoft
-      MYSQL_PASSWORD: 123
-      MYSQL_DATABASE: examples
-      MYSQL_HOST: examples-db
-  examples-ms:
-    image: dieosiris23/2b_example
-    command: bash -c "sleep 40 && rm -f tmp/pids/server.pid && bundle exec rails db:migrate && bundle exec rails db:seed && bundle exec rails s -p 4001 -b '0.0.0.0'"
-    ports:
-      - "4001:4001"
-    depends_on:
-      - examples-db
   #Examples MS
   examples-db:
     image: mysql:5.7
@@ -53,6 +35,13 @@ services:
       MYSQL_PASSWORD: 123
       MYSQL_DATABASE: examples
       MYSQL_HOST: examples-db
+  examples-ms:
+    image: dafrodriguezro/2b_example
+    command: bash -c "sleep 40 && rm -f tmp/pids/server.pid && bundle exec rails db:migrate && bundle exec rails db:seed && bundle exec rails s -p 4001 -b '0.0.0.0'"
+    environment:
+      PORT: '4001'
+    depends_on:
+      - examples-db
   lists-db:
     container_name: lists-db
     image: mysql:5.7
@@ -96,23 +85,23 @@ services:
     depends_on:
       - tasks-db
     #Authentication MS
-  auth-db:
+  users-db:
     image: mysql:5.7
     ports:
-      - "3307:3307"
+      - '3307:3307'
     environment:
       MYSQL_ROOT_PASSWORD: 123
       MYSQL_USER: arquisoft
       MYSQL_PASSWORD: 123
       MYSQL_DATABASE: auth
-      MYSQL_HOST: auth-db
-  auth-ms:
-    image: joahernandezca/2b_authentication
+      MYSQL_HOST: users-db
+  users-ms:
+    image: baangaritar/2e_unaldo_users
     command: bash -c "sleep 40 && rm -f tmp/pids/server.pid && bundle exec rails db:migrate && bundle exec rails db:seed && bundle exec rails s -p 4000 -b '0.0.0.0'"
-    environment:
-      PORT: '4000'
+    ports:
+      - 4000:4000
     depends_on:
-      - auth-db
+      - 'users-db'
   statistics-ms:
     container_name: statistics-ms
     image: dieosiris23/statistics-py
