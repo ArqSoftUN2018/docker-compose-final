@@ -104,7 +104,7 @@ services:
       - 'users-db'
   statistics-ms:
     container_name: statistics-ms
-    image: dieosiris23/statistics-py
+    image: caatovarbo/statistics_ms
     command: ["gunicorn", "statistics_ms.wsgi:application", "--bind", "0.0.0.0:8000"]
     environment:
       - SECRET_KEY=statistics
